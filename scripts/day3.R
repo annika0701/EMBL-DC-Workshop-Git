@@ -107,11 +107,43 @@ surveys %>%
   
 
 
+##### convert table from long to wide
 
- 
- 
+surveys_gw <- surveys %>%
+  filter(!is.na(weight)) %>%
+  group_by(plot_id, genus) %>%
+  summarise(mean_weight = mean(weight))
+
+view(surveys_gw)
+str(surveys_gw)
+
+surveys_wide <- surveys_gw %>%
+  pivot_wider(names_from = genus, values_from = mean_weight, values_fill = 0)
+
+surveys_long <- surveys_wide %>%
+  pivot_longer(names_to = "genus", values_to = "mean_weight", cols = -plot_id)
+
+str(surveys_long) 
    
-  
+#challenge
 
+surveys %>%
+  pivot_longer(names_to = "measurement", values_to = "value", cols = weight )
+#1
+surveys_long <- surveys %>%
+  pivot_longer(names_to = "measurement", values_to = "value", cols = c(hindfoot_length, weight))
+
+#2
+
+surveys_long %>%
+  group_by(year, measurement, plot_type) %>% 
+  summarise(mean_value = mean(value, na.rm = T)) %>% 
+  pivot_wider(names_from = measurement, values_from = mean_value)
+
+# create a table for later visualization
+surveys_complete <- surveys %>% 
+  filter(!is.na(weight), !is.na(hindfoot_length), !is.na(sex))
+
+write_csv(surveys_complete, file = "surveys_complete.csv")
 
            

@@ -18,7 +18,7 @@ as_tibble(pca_matrix, rownames = "sample")
 
 pc_eigenvalues <- sample_pca$sdev^2  #calculate standard deviation and square it to geht our eigenvalues
 
-pc_eigenvalues <- tibble(PC = factor(1:length(pc_eigenvalues)),
+pc_eigenvalues <- tibble(PC = factor(1:length(pc_eigenvalues)),        #shortcut is tidy(sample_pca, matrix = "eigenvalues")
                          variance = pc_eigenvalues) %>% 
   mutate(pct = variance/sum(variance)*100) %>% 
   mutate(pct_cum = cumsum(pct))
@@ -43,7 +43,7 @@ pc_scores %>%
 pc_scores %>% 
   full_join(sample_info, by ="sample")
 
-pc_scores %>% 
+pca_plot <- pc_scores %>% 
   full_join(sample_info, by="sample") %>% 
   ggplot(aes(x = PC1, y = PC2, color = factor(minute), shape = strain))+
   geom_point()
@@ -64,7 +64,7 @@ top_loadings <- pc_loadings %>%
   filter(gene %in% top_genes)
 
 
-  ggplot(data = top_loadings)+
+loadings_plot <- ggplot(data = top_loadings)+
     geom_segment(aes(x = 0, y= 0, xend = PC1, yend = PC2), #geomsegment is painting the arrowa
                  arrow = arrow(length = unit(0.1, "in")),
                  color = "brown")+
@@ -72,6 +72,20 @@ top_loadings <- pc_loadings %>%
               nudge_y = 0.005, size = 3)+
     scale_x_continuous(expand = c(0.02, 0.02))
 
+library(patchwork)
+
+(pca_plot | loadings_plot) +
+  plot_annotation(tag_levels ="A")
+
+library(ggfortify)
+autoplot(sample_pca)
+
+autoplot(sample_pca, data = sample_info, color = "minute", shape = "strain")
+
+library(broom)
+tidy(sample_pca, matrix = "eigenvalues")
+
+tidy(sample_pca, matrix = "loadings")
 
 
 
